@@ -1,8 +1,0 @@
-package chapter3.bank09;
-
-public class BankProgram {
-   public static void main(String[] args) {
-      BankClient client = new BankClient();
-      client.run();
-   }
-}

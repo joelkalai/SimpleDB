@@ -1,8 +1,0 @@
-package bank.version17;
-//Adding the interface InputClient
-
-interface InputClient {
-   int getCommand();
-   void processCommand(int cmd);
-   boolean isDone();
-}
