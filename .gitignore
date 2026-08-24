@@ -34,6 +34,7 @@ concurrencytest/
 filetest/
 logtest/
 metadatamgrtest/
+noneqtest/
 plannertest1/
 plannertest2/
 producttest/
