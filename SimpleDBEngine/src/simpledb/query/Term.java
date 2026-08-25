@@ -55,23 +55,23 @@ public class Term {
     * @return true if lhsval <opr> rhsval holds
     */
    private boolean compare(Constant lhsval, Constant rhsval) {
-      int cmp = lhsval.compareTo(rhsval);
-      switch (opr) {
-         case "=":
-            return cmp == 0;
-         case "<":
-            return cmp < 0;
-         case "<=":
-            return cmp <= 0;
-         case ">":
-            return cmp > 0;
-         case ">=":
-            return cmp >= 0;
-         case "!=":
-         case "<>":
-            return cmp != 0;
-         default:
-            throw new RuntimeException("Unknown comparison operator " + opr);
+	   if (opr.equals("="))
+		   return lhsval.equals(rhsval);
+	   if (opr.equals("!=") || opr.equals("<>"))
+		   return !lhsval.equals(rhsval);
+
+	   int cmp = lhsval.compareTo(rhsval);
+	   switch (opr) {
+	   	case "<":
+	   		return cmp < 0;
+	   	case "<=":
+	   		return cmp <= 0;
+	   	case ">":
+	   		return cmp > 0;
+	   	case ">=":
+	   		return cmp >= 0;
+	   	default:
+	   		throw new RuntimeException("Unknown comparison operator " + opr);
       }
    }
    
