@@ -19,10 +19,10 @@ public class SortPlan implements Plan {
    /**
     * Create a sort plan for the specified query.
     * @param p the plan for the underlying query
-    * @param sortfields the fields to sort by
+    * @param sortfields the fields to sort by, each with its direction
     * @param tx the calling transaction
     */
-   public SortPlan(Transaction tx, Plan p, List<String> sortfields) {
+   public SortPlan(Transaction tx, Plan p, List<SortField> sortfields) {
       this.tx = tx;
       this.p = p;
       sch = p.schema();
