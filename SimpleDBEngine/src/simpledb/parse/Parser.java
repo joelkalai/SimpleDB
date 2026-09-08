@@ -64,7 +64,36 @@ public class Parser {
          lex.eatKeyword("where");
          pred = predicate();
       }
-      return new QueryData(fields, tables, pred);
+      List<SortField> sortfields = new ArrayList<SortField>();
+      if (lex.matchKeyword("order")) {
+         lex.eatKeyword("order");
+         lex.eatKeyword("by");
+         sortfields = sortList();
+      }
+      return new QueryData(fields, tables, pred, sortfields);
+   }
+   
+   /**
+    * Parse a comma-separated list of order by entries.
+    * Each entry is a field name optionally followed by
+    * asc or desc; ascending is the default.
+    */
+   private List<SortField> sortList() {
+      List<SortField> L = new ArrayList<SortField>();
+      String fldname = field();
+      boolean asc = true;
+      if (lex.matchKeyword("asc"))
+         lex.eatKeyword("asc");
+      else if (lex.matchKeyword("desc")) {
+         lex.eatKeyword("desc");
+         asc = false;
+      }
+      L.add(new SortField(fldname, asc));
+      if (lex.matchDelim(',')) {
+         lex.eatDelim(',');
+         L.addAll(sortList());
+      }
+      return L;
    }
    
    private List<String> selectList() {
