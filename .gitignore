@@ -32,6 +32,7 @@ buffermgrtest/
 buffertest/
 concurrencytest/
 filetest/
+indextypetest/
 logtest/
 metadatamgrtest/
 noneqtest/

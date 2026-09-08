@@ -240,7 +240,18 @@ public class Parser {
       lex.eatDelim('(');
       String fldname = field();
       lex.eatDelim(')');
-      return new CreateIndexData(idxname, tblname, fldname);
+      String idxtype = "hash";  // default when "using" clause is omitted
+      if (lex.matchKeyword("using")) {
+         lex.eatKeyword("using");
+         if (lex.matchKeyword("btree")) {
+            lex.eatKeyword("btree");
+            idxtype = "btree";
+         } else {
+            lex.eatKeyword("hash");
+            idxtype = "hash";
+         }
+      }
+      return new CreateIndexData(idxname, tblname, fldname, idxtype);
    }
 }
 
