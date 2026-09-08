@@ -10,7 +10,8 @@ import simpledb.record.*;
  */
 public class Term {
    private Expression lhs, rhs;
-   
+   private String opr;
+
    /**
     * Create a new term that compares two expressions
     * for equality.
@@ -18,21 +19,60 @@ public class Term {
     * @param rhs  the RHS expression
     */
    public Term(Expression lhs, Expression rhs) {
+      this(lhs, "=", rhs);
+   }
+
+   /**
+    * Create a new term that compares two expressions
+    * using the specified comparison operator.
+    * @param lhs  the LHS expression
+    * @param opr  the comparison operator: one of "=", "<", "<=", ">", ">=", "!=", "<>"
+    * @param rhs  the RHS expression
+    */
+   public Term(Expression lhs, String opr, Expression rhs) {
       this.lhs = lhs;
+      this.opr = opr;
       this.rhs = rhs;
    }
-   
+
    /**
-    * Return true if both of the term's expressions
-    * evaluate to the same constant,
-    * with respect to the specified scan.
+    * Return true if both of the term's expressions,
+    * evaluated with respect to the specified scan,
+    * satisfy the term's comparison operator.
     * @param s the scan
-    * @return true if both expressions have the same value in the scan
+    * @return true if the comparison holds in the scan
     */
    public boolean isSatisfied(Scan s) {
       Constant lhsval = lhs.evaluate(s);
       Constant rhsval = rhs.evaluate(s);
-      return rhsval.equals(lhsval);
+      return compare(lhsval, rhsval);
+   }
+
+   /**
+    * Evaluate this term's comparison operator against two constants.
+    * @param lhsval the LHS value
+    * @param rhsval the RHS value
+    * @return true if lhsval <opr> rhsval holds
+    */
+   private boolean compare(Constant lhsval, Constant rhsval) {
+	   if (opr.equals("="))
+		   return lhsval.equals(rhsval);
+	   if (opr.equals("!=") || opr.equals("<>"))
+		   return !lhsval.equals(rhsval);
+
+	   int cmp = lhsval.compareTo(rhsval);
+	   switch (opr) {
+	   	case "<":
+	   		return cmp < 0;
+	   	case "<=":
+	   		return cmp <= 0;
+	   	case ">":
+	   		return cmp > 0;
+	   	case ">=":
+	   		return cmp >= 0;
+	   	default:
+	   		throw new RuntimeException("Unknown comparison operator " + opr);
+      }
    }
    
    /**
@@ -59,8 +99,8 @@ public class Term {
          rhsName = rhs.asFieldName();
          return p.distinctValues(rhsName);
       }
-      // otherwise, the term equates constants
-      if (lhs.asConstant().equals(rhs.asConstant()))
+      // otherwise, the term compares two constants
+      if (compare(lhs.asConstant(), rhs.asConstant()))
          return 1;
       else
          return Integer.MAX_VALUE;
@@ -75,6 +115,8 @@ public class Term {
     * @return either the constant or null
     */
    public Constant equatesWithConstant(String fldname) {
+      if (!opr.equals("="))
+         return null;
       if (lhs.isFieldName() &&
           lhs.asFieldName().equals(fldname) &&
           !rhs.isFieldName())
@@ -96,6 +138,8 @@ public class Term {
     * @return either the name of the other field, or null
     */
    public String equatesWithField(String fldname) {
+      if (!opr.equals("="))
+         return null;
       if (lhs.isFieldName() &&
           lhs.asFieldName().equals(fldname) &&
           rhs.isFieldName())
@@ -119,6 +163,6 @@ public class Term {
    }
    
    public String toString() {
-      return lhs.toString() + "=" + rhs.toString();
+      return lhs.toString() + opr + rhs.toString();
    }
 }

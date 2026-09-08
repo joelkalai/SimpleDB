@@ -138,6 +138,44 @@ public class Lexer {
       return s;
    }
    
+   /**
+    *  Distinguishes <, <=, >, >=, =, != and <>, using one token of
+    *  lookahead to do so.
+    *  @return the operator string ("<", "<=", ">", ">=", "=", "!=" or "<>")
+    */
+   public String eatOpr() {
+	   int currentType = tok.ttype;
+
+	    // Check if the current token is an isolated symbol
+	   if (currentType == '<' || currentType == '>' || currentType == '!' || currentType == '=') {
+	        char firstChar = (char) currentType;
+
+	        try {
+	            // Peek at the very next token in the stream
+	            int nextType = tok.nextToken();
+
+	            if (nextType == '=' || (firstChar == '<' && nextType == '>')) {
+	                // Found a multi-character operator: <=, >=, !=, or <>
+	                char secondChar = (char) nextType;
+	                nextToken(); // consume the 2nd char and load the token that follows the operator
+	                return "" + firstChar + secondChar;
+	            } else if (firstChar == '!') {
+	                // "!" is only valid as part of "!="
+	                throw new BadSyntaxException("Expected '=' after '!'");
+	            } else {
+	                // A single character operator (<, >, or =). The lookahead token
+	                // above is already the token following the operator, so there is
+	                // nothing left to consume or push back.
+	                return "" + firstChar;
+	            }
+	        } catch (IOException e) {
+	            throw new BadSyntaxException("Error parsing operator");
+	        }
+	    }
+
+	    throw new BadSyntaxException("Expected a valid comparison operator");
+   }
+   
    private void nextToken() {
       try {
          tok.nextToken();

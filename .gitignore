@@ -1,0 +1,48 @@
+# ---- Java build output ----
+bin/
+build/
+target/
+*.class
+
+# ---- Eclipse project/workspace metadata ----
+.metadata/
+.settings/
+.classpath
+.project
+.buildpath
+.loadpath
+.recommenders/
+.externalToolBuilders/
+.launch
+
+# ---- OS / editor cruft ----
+.DS_Store
+Thumbs.db
+*.swp
+*~
+*.bak
+*.tmp
+
+# ---- SimpleDB runtime-generated database directories ----
+# Each `new SimpleDB("name")` call (in test/demo programs and the server)
+# creates a directory of table/log files under that name; these are
+# regenerated on every run and shouldn't be committed.
+bufferfiletest/
+buffermgrtest/
+buffertest/
+concurrencytest/
+filetest/
+logtest/
+metadatamgrtest/
+noneqtest/
+plannertest1/
+plannertest2/
+producttest/
+recordtest/
+recoverytest/
+scantest1/
+scantest2/
+studentdb/
+tabletest/
+tblmgrtest/
+txtest/
