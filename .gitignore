@@ -47,3 +47,9 @@ studentdb/
 tabletest/
 tblmgrtest/
 txtest/
+
+# lab 4 join tests
+bigstudentdb/
+
+# lab reports, change logs and plans (kept locally, not committed)
+reports/

@@ -66,6 +66,7 @@ public class HeuristicQueryPlanner implements QueryPlanner {
          }
       }
       tableplanners.remove(besttp);
+      report(besttp.selectChoice());
       return bestplan;
    }
    
@@ -79,8 +80,10 @@ public class HeuristicQueryPlanner implements QueryPlanner {
             bestplan = plan;
          }
       }
-      if (bestplan != null)
+      if (bestplan != null) {
          tableplanners.remove(besttp);
+         report(besttp.joinChoice());
+      }
       return bestplan;
    }
    
@@ -95,7 +98,18 @@ public class HeuristicQueryPlanner implements QueryPlanner {
          }
       }
       tableplanners.remove(besttp);
+      report(besttp.joinChoice());
       return bestplan;
+   }
+
+   /**
+    * Announce how a table ended up being accessed.  The table planners
+    * plan every alternative and describe only the one they keep, so that
+    * the alternatives this planner discards do not appear in the output.
+    */
+   private void report(String choice) {
+      if (choice != null)
+         System.out.println("  " + choice);
    }
 
    public void setPlanner(Planner p) {
