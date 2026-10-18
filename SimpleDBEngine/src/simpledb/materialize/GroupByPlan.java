@@ -28,13 +28,13 @@ public class GroupByPlan implements Plan {
     * @param tx the calling transaction
     */
    public GroupByPlan(Transaction tx, Plan p, List<String> groupfields, List<AggregationFn> aggfns) {
-      this.p = new SortPlan(tx, p, SortField.ascending(groupfields));
+      this.p = groupfields.isEmpty() ? p : new SortPlan(tx, p, SortField.ascending(groupfields));
       this.groupfields = groupfields;
       this.aggfns = aggfns;
       for (String fldname : groupfields)
          sch.add(fldname, p.schema());
       for (AggregationFn fn : aggfns)
-         sch.addIntField(fn.fieldName());
+         fn.addFieldTo(sch, p.schema());
    }
    
    /**

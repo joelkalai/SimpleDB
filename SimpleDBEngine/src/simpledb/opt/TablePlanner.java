@@ -6,6 +6,7 @@ import simpledb.record.*;
 import simpledb.query.*;
 import simpledb.metadata.*;
 import simpledb.index.planner.*;
+import simpledb.materialize.HashJoinPlan;
 import simpledb.materialize.MergeJoinPlan;
 import simpledb.multibuffer.MultibufferProductPlan;
 import simpledb.opt.JoinStrategy.Algorithm;
@@ -81,6 +82,8 @@ class TablePlanner {
          addCandidate(candidates, Algorithm.INDEX, makeIndexJoin(current, currsch));
       if (JoinStrategy.allows(Algorithm.MERGE))
          addCandidate(candidates, Algorithm.MERGE, makeMergeJoin(current, currsch));
+      if (JoinStrategy.allows(Algorithm.HASH))
+         addCandidate(candidates, Algorithm.HASH, makeHashJoin(current, currsch));
       if (JoinStrategy.allows(Algorithm.NESTEDLOOPS))
          addCandidate(candidates, Algorithm.NESTEDLOOPS, makeNestedLoopsJoin(current, currsch));
       if (JoinStrategy.current() == Algorithm.PRODUCT)
@@ -192,6 +195,15 @@ class TablePlanner {
       return new NestedLoopsJoinPlan(current, p, joinpred);
    }
 
+   private Plan makeHashJoin(Plan current, Schema currsch) {
+      String[] joinflds = findJoinFields(currsch);
+      if (joinflds == null)
+         return null;
+      Plan p = addSelectPred(myplan);
+      Plan hj = new HashJoinPlan(tx, current, p, joinflds[0], joinflds[1]);
+      return addJoinPredExcluding(hj, currsch, joinflds[0], joinflds[1]);
+   }
+
    private Plan makeProductJoin(Plan current, Schema currsch) {
       Plan p = makeProductPlan(current);
       return addJoinPred(p, currsch);
@@ -242,6 +254,7 @@ class TablePlanner {
       switch (a) {
          case INDEX:       return "indexjoin";
          case MERGE:       return "mergejoin";
+         case HASH:        return "hashjoin";
          case NESTEDLOOPS: return "nestedloopsjoin";
          case PRODUCT:     return "productjoin";
          default:          return a.toString().toLowerCase();

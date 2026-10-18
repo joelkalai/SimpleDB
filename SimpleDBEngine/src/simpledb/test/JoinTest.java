@@ -55,7 +55,8 @@ public class JoinTest {
             algorithms.add(JoinStrategy.current());
          else
             algorithms.addAll(Arrays.asList(Algorithm.AUTO, Algorithm.INDEX,
-                                            Algorithm.MERGE, Algorithm.NESTEDLOOPS,
+                                            Algorithm.MERGE, Algorithm.HASH,
+                                            Algorithm.NESTEDLOOPS,
                                             Algorithm.PRODUCT));
 
          int failures = 0;

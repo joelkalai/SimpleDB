@@ -56,7 +56,9 @@ public class Parser {
    
    public QueryData query() {
       lex.eatKeyword("select");
-      List<String> fields = selectList();
+      List<String> fields = new ArrayList<String>();
+      Map<String,AggregateSpec> aggregates = new LinkedHashMap<String,AggregateSpec>();
+      selectList(fields, aggregates);
       lex.eatKeyword("from");
       Collection<String> tables = tableList();
       Predicate pred = new Predicate();
@@ -64,13 +66,65 @@ public class Parser {
          lex.eatKeyword("where");
          pred = predicate();
       }
+      List<String> groupfields = new ArrayList<String>();
+      if (lex.matchKeyword("group")) {
+         lex.eatKeyword("group");
+         lex.eatKeyword("by");
+         groupfields = fieldList();
+      }
       List<SortField> sortfields = new ArrayList<SortField>();
       if (lex.matchKeyword("order")) {
          lex.eatKeyword("order");
          lex.eatKeyword("by");
-         sortfields = sortList();
+         sortfields = sortList(aggregates);
       }
-      return new QueryData(fields, tables, pred, sortfields);
+      checkGrouping(fields, aggregates, groupfields, sortfields);
+      return new QueryData(fields, tables, pred, sortfields, groupfields,
+                           new ArrayList<AggregateSpec>(aggregates.values()));
+   }
+
+   private boolean matchAggregate() {
+      for (String fn : AggregateSpec.FUNCTIONS)
+         if (lex.matchKeyword(fn))
+            return true;
+      return false;
+   }
+
+   private AggregateSpec aggregate() {
+      String fn = null;
+      for (String f : AggregateSpec.FUNCTIONS)
+         if (lex.matchKeyword(f))
+            fn = f;
+      lex.eatKeyword(fn);
+      lex.eatDelim('(');
+      String arg;
+      if (lex.matchDelim('*')) {
+         if (!fn.equals("count"))
+            throw new BadSyntaxException("only count accepts *");
+         lex.eatDelim('*');
+         arg = "*";
+      }
+      else
+         arg = field();
+      lex.eatDelim(')');
+      return new AggregateSpec(fn, arg);
+   }
+
+   private void checkGrouping(List<String> fields, Map<String,AggregateSpec> aggregates,
+                              List<String> groupfields, List<SortField> sortfields) {
+      if (aggregates.isEmpty() && groupfields.isEmpty())
+         return;
+      for (String fldname : fields)
+         requireGrouped(fldname, aggregates, groupfields);
+      for (SortField sf : sortfields)
+         requireGrouped(sf.field(), aggregates, groupfields);
+   }
+
+   private void requireGrouped(String fldname, Map<String,AggregateSpec> aggregates,
+                               List<String> groupfields) {
+      if (!aggregates.containsKey(fldname) && !groupfields.contains(fldname))
+         throw new BadSyntaxException("field " + fldname
+               + " must appear in the group by clause or inside an aggregate");
    }
    
    /**
@@ -78,9 +132,16 @@ public class Parser {
     * Each entry is a field name optionally followed by
     * asc or desc; ascending is the default.
     */
-   private List<SortField> sortList() {
+   private List<SortField> sortList(Map<String,AggregateSpec> aggregates) {
       List<SortField> L = new ArrayList<SortField>();
-      String fldname = field();
+      String fldname;
+      if (matchAggregate()) {
+         AggregateSpec spec = aggregate();
+         aggregates.put(spec.fieldName(), spec);
+         fldname = spec.fieldName();
+      }
+      else
+         fldname = field();
       boolean asc = true;
       if (lex.matchKeyword("asc"))
          lex.eatKeyword("asc");
@@ -91,19 +152,23 @@ public class Parser {
       L.add(new SortField(fldname, asc));
       if (lex.matchDelim(',')) {
          lex.eatDelim(',');
-         L.addAll(sortList());
+         L.addAll(sortList(aggregates));
       }
       return L;
    }
    
-   private List<String> selectList() {
-      List<String> L = new ArrayList<String>();
-      L.add(field());
+   private void selectList(List<String> fields, Map<String,AggregateSpec> aggregates) {
+      if (matchAggregate()) {
+         AggregateSpec spec = aggregate();
+         aggregates.put(spec.fieldName(), spec);
+         fields.add(spec.fieldName());
+      }
+      else
+         fields.add(field());
       if (lex.matchDelim(',')) {
          lex.eatDelim(',');
-         L.addAll(selectList());
+         selectList(fields, aggregates);
       }
-      return L;
    }
    
    private Collection<String> tableList() {
