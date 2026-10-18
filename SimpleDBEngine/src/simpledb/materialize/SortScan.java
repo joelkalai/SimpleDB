@@ -18,6 +18,8 @@ public class SortScan implements Scan {
    private RecordComparator comp;
    private boolean hasmore1, hasmore2=false;
    private List<RID> savedposition;
+   private UpdateScan savedcurrentscan;
+   private boolean savedhasmore1, savedhasmore2;
    
    /**
     * Create a sort scan, given a list of 1 or 2 runs.
@@ -131,11 +133,22 @@ public class SortScan implements Scan {
    /**
     * Save the position of the current record,
     * so that it can be restored at a later time.
+    * <P>
+    * The position of a sort scan is not just the position of its two
+    * underlying runs: it also includes which run the current record came
+    * from, and whether each run is exhausted.  Saving only the RIDs
+    * leaves restorePosition resuming on the wrong run, which silently
+    * drops join records in a mergejoin whose LHS has duplicate join
+    * values.  A run that is already exhausted has no meaningful RID, so
+    * none is saved for it.
     */
    public void savePosition() {
-      RID rid1 = s1.getRid();
-      RID rid2 = (s2 == null) ? null : s2.getRid();
+      RID rid1 = hasmore1 ? s1.getRid() : null;
+      RID rid2 = (s2 != null && hasmore2) ? s2.getRid() : null;
       savedposition = Arrays.asList(rid1,rid2);
+      savedcurrentscan = currentscan;
+      savedhasmore1 = hasmore1;
+      savedhasmore2 = hasmore2;
    }
    
    /**
@@ -144,8 +157,12 @@ public class SortScan implements Scan {
    public void restorePosition() {
       RID rid1 = savedposition.get(0);
       RID rid2 = savedposition.get(1);
-      s1.moveToRid(rid1);
+      if (rid1 != null)
+         s1.moveToRid(rid1);
       if (rid2 != null)
          s2.moveToRid(rid2);
+      currentscan = savedcurrentscan;
+      hasmore1 = savedhasmore1;
+      hasmore2 = savedhasmore2;
    }
 }

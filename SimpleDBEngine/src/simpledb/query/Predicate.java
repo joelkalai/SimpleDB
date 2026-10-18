@@ -104,6 +104,41 @@ public class Predicate {
    }
 
    /**
+    * Return the subpredicate of join terms applying to the union of the
+    * two specified schemas, but excluding the single equality term
+    * "fld1 = fld2" that the join operator itself already enforces.
+    * A join algorithm such as an indexjoin or a mergejoin guarantees that
+    * equality, so re-checking it in a selection above the join is both
+    * redundant work and a second, unwarranted reduction of the estimated
+    * output size.
+    * @param sch1 the first schema
+    * @param sch2 the second schema
+    * @param fld1 the join field belonging to the first schema
+    * @param fld2 the join field belonging to the second schema
+    * @return the remaining join subpredicate, or null if no terms remain
+    */
+   public Predicate joinSubPredExcluding(Schema sch1, Schema sch2, String fld1, String fld2) {
+      Predicate result = new Predicate();
+      Schema newsch = new Schema();
+      newsch.addAll(sch1);
+      newsch.addAll(sch2);
+      boolean excluded = false;
+      for (Term t : terms) {
+         if (t.appliesTo(sch1) || t.appliesTo(sch2) || !t.appliesTo(newsch))
+            continue;
+         if (!excluded && fld2.equals(t.equatesWithField(fld1))) {
+            excluded = true;   // drop only the one term the join enforces
+            continue;
+         }
+         result.terms.add(t);
+      }
+      if (result.terms.size() == 0)
+         return null;
+      else
+         return result;
+   }
+
+   /**
     * Determine if there is a term of the form "F=c"
     * where F is the specified field and c is some constant.
     * If so, the method returns that constant.
