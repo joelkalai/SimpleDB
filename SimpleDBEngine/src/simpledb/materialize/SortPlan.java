@@ -15,6 +15,7 @@ public class SortPlan implements Plan {
    private Plan p;
    private Schema sch;
    private RecordComparator comp;
+   private List<SortField> sortfields;
    
    /**
     * Create a sort plan for the specified query.
@@ -26,6 +27,7 @@ public class SortPlan implements Plan {
       this.tx = tx;
       this.p = p;
       sch = p.schema();
+      this.sortfields = sortfields;
       comp = new RecordComparator(sortfields);
    }
    
@@ -151,5 +153,13 @@ public class SortPlan implements Plan {
       for (String fldname : sch.fields())
          dest.setVal(fldname, src.getVal(fldname));
       return src.next();
+   }
+
+   public String describe() {
+      return "SortPlan by " + sortfields;
+   }
+
+   public List<Plan> children() {
+      return Arrays.asList(p);
    }
 }

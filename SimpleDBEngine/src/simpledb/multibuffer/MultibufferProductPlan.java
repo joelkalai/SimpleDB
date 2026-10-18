@@ -1,5 +1,7 @@
 package simpledb.multibuffer;
 
+import java.util.List;
+import java.util.Arrays;
 import simpledb.tx.Transaction;
 import simpledb.record.*;
 import simpledb.query.*;
@@ -111,5 +113,13 @@ public class MultibufferProductPlan implements Plan {
       src.close();
       dest.close();
       return t;
+   }
+
+   public String describe() {
+      return "MultibufferProductPlan";
+   }
+
+   public List<Plan> children() {
+      return Arrays.asList(lhs, rhs);
    }
 }

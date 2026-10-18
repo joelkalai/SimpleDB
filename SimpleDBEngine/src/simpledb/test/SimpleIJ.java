@@ -35,7 +35,7 @@ public class SimpleIJ {
          String cmd = sc.nextLine().trim();
          if (cmd.startsWith("exit"))
             break;
-         else if (cmd.startsWith("select"))
+         else if (cmd.startsWith("select") || cmd.startsWith("explain"))
             doQuery(db, cmd);
          else if (!cmd.isEmpty())
             doUpdate(db, cmd);
@@ -58,7 +58,7 @@ public class SimpleIJ {
          for (String fldname : fields) {
             int width = displaySize(sch, fldname);
             totalwidth += width;
-            System.out.format("%" + width + "s", fldname);
+            System.out.format((fldname.equals("queryplan") ? "%-" : "%") + width + "s", fldname);
          }
          System.out.println();
          for (int i = 0; i < totalwidth; i++)
@@ -69,7 +69,7 @@ public class SimpleIJ {
          Scan s = p.open();
          while (s.next()) {
             for (String fldname : fields) {
-               String fmt = "%" + displaySize(sch, fldname);
+               String fmt = (fldname.equals("queryplan") ? "%-" : "%") + displaySize(sch, fldname);
                if (sch.type(fldname) == INTEGER)
                   System.out.format(fmt + "d", s.getInt(fldname));
                else

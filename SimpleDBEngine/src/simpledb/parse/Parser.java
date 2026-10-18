@@ -54,8 +54,20 @@ public class Parser {
    
 // Methods for parsing queries
    
+   public boolean explain() {
+      if (!lex.matchKeyword("explain"))
+         return false;
+      lex.eatKeyword("explain");
+      return true;
+   }
+   
    public QueryData query() {
       lex.eatKeyword("select");
+      boolean distinct = false;
+      if (lex.matchKeyword("distinct")) {
+         lex.eatKeyword("distinct");
+         distinct = true;
+      }
       List<String> fields = new ArrayList<String>();
       Map<String,AggregateSpec> aggregates = new LinkedHashMap<String,AggregateSpec>();
       selectList(fields, aggregates);
@@ -79,8 +91,13 @@ public class Parser {
          sortfields = sortList(aggregates);
       }
       checkGrouping(fields, aggregates, groupfields, sortfields);
+      if (distinct)
+         for (SortField sf : sortfields)
+            if (!fields.contains(sf.field()))
+               throw new BadSyntaxException("with select distinct, order by field "
+                     + sf.field() + " must appear in the select list");
       return new QueryData(fields, tables, pred, sortfields, groupfields,
-                           new ArrayList<AggregateSpec>(aggregates.values()));
+                           new ArrayList<AggregateSpec>(aggregates.values()), distinct);
    }
 
    private boolean matchAggregate() {
