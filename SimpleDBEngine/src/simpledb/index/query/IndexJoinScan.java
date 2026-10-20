@@ -16,7 +16,8 @@ public class IndexJoinScan implements Scan {
    private Scan lhs;
    private Index idx;
    private String joinfield;
-   private TableScan rhs;  
+   private TableScan rhs;
+   private boolean hasmore;  // false once the LHS is exhausted (or was empty)
    
    /**
     * Creates an index join scan for the specified LHS scan and 
@@ -43,8 +44,9 @@ public class IndexJoinScan implements Scan {
     */
    public void beforeFirst() {
       lhs.beforeFirst();
-      lhs.next();
-      resetIndex();
+      hasmore = lhs.next();
+      if (hasmore)
+         resetIndex();
    }
    
    /**
@@ -56,13 +58,17 @@ public class IndexJoinScan implements Scan {
     * @see simpledb.query.Scan#next()
     */
    public boolean next() {
+      if (!hasmore)
+         return false;
       while (true) {
          if (idx.next()) {
             rhs.moveToRid(idx.getDataRid());
             return true;
          }
-         if (!lhs.next())
+         if (!lhs.next()) {
+            hasmore = false;
             return false;
+         }
          resetIndex();
       }
    }
