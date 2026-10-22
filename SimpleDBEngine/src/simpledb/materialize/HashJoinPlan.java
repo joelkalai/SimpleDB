@@ -85,4 +85,12 @@ public class HashJoinPlan implements Plan {
    private static int bucket(Constant val, int k) {
       return (val.hashCode() & Integer.MAX_VALUE) % k;
    }
+
+   public String describe() {
+      return "HashJoinPlan on " + fldname1 + " = " + fldname2;
+   }
+
+   public List<Plan> children() {
+      return Arrays.asList(p1, p2);
+   }
 }

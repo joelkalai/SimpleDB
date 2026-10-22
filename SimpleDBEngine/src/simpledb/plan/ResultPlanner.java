@@ -7,6 +7,7 @@ import simpledb.tx.Transaction;
 import simpledb.materialize.*;
 import simpledb.parse.AggregateSpec;
 import simpledb.parse.QueryData;
+import simpledb.query.SortField;
 import simpledb.record.Schema;
 
 public class ResultPlanner {
@@ -14,9 +15,35 @@ public class ResultPlanner {
    public static Plan finish(Transaction tx, Plan p, QueryData data) {
       if (data.hasAggregation())
          p = aggregate(tx, p, data);
-      if (!data.sortFields().isEmpty())
+      if (data.isDistinct())
+         return new DistinctPlan(tx, new ProjectPlan(p, data.fields()), distinctOrder(data));
+      if (!data.sortFields().isEmpty() && !alreadyOrdered(data))
          p = new SortPlan(tx, p, data.sortFields());
       return new ProjectPlan(p, data.fields());
+   }
+
+   private static boolean alreadyOrdered(QueryData data) {
+      List<SortField> sorts = data.sortFields();
+      List<String> groups = data.groupFields();
+      if (sorts.size() > groups.size())
+         return false;
+      for (int i = 0; i < sorts.size(); i++)
+         if (!sorts.get(i).isAscending() || !sorts.get(i).field().equals(groups.get(i)))
+            return false;
+      return true;
+   }
+
+   private static List<SortField> distinctOrder(QueryData data) {
+      List<SortField> order = new ArrayList<>(data.sortFields());
+      for (String fldname : data.fields()) {
+         boolean present = false;
+         for (SortField sf : order)
+            if (sf.field().equals(fldname))
+               present = true;
+         if (!present)
+            order.add(new SortField(fldname));
+      }
+      return order;
    }
 
    private static Plan aggregate(Transaction tx, Plan p, QueryData data) {

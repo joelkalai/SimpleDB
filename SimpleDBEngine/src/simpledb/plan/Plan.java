@@ -1,5 +1,7 @@
 package simpledb.plan;
 
+import java.util.Collections;
+import java.util.List;
 import simpledb.query.Scan;
 import simpledb.record.*;
 
@@ -45,4 +47,12 @@ public interface Plan {
     * @return the query's schema
     */
    public Schema schema();
+
+   default String describe() {
+      return getClass().getSimpleName();
+   }
+
+   default List<Plan> children() {
+      return Collections.emptyList();
+   }
 }

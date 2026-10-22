@@ -1,5 +1,7 @@
 package simpledb.materialize;
 
+import java.util.List;
+import java.util.Arrays;
 import simpledb.tx.Transaction;
 import simpledb.record.*;
 import simpledb.plan.Plan;
@@ -83,5 +85,13 @@ public class MaterializePlan implements Plan {
     */
    public Schema schema() {
       return srcplan.schema();
+   }
+
+   public String describe() {
+      return "MaterializePlan";
+   }
+
+   public List<Plan> children() {
+      return Arrays.asList(srcplan);
    }
 }

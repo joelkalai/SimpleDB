@@ -1,5 +1,6 @@
 package simpledb.plan;
 
+import java.util.List;
 import simpledb.query.Scan;
 import simpledb.record.Schema;
 
@@ -37,5 +38,13 @@ public class OptimizedProductPlan implements Plan {
 
    public Schema schema() {
       return bestplan.schema();
+   }
+
+   public String describe() {
+      return bestplan.describe();
+   }
+
+   public List<Plan> children() {
+      return bestplan.children();
    }
 }
