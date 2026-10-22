@@ -1,5 +1,7 @@
 package simpledb.tx;
 
+import java.util.ArrayList;
+import java.util.List;
 import simpledb.file.*;
 import simpledb.log.LogMgr;
 import simpledb.buffer.*;
@@ -21,6 +23,7 @@ public class Transaction {
    private FileMgr fm;
    private int txnum;
    private BufferList mybuffers;
+   private List<String> tempfiles = new ArrayList<>();
    
    /**
     * Create a new transaction and its associated 
@@ -54,6 +57,7 @@ public class Transaction {
       System.out.println("transaction " + txnum + " committed");
       concurMgr.release();
       mybuffers.unpinAll();
+      dropTempFiles();
    }
    
    /**
@@ -68,6 +72,7 @@ public class Transaction {
       System.out.println("transaction " + txnum + " rolled back");
       concurMgr.release();
       mybuffers.unpinAll();
+      dropTempFiles();
    }
    
    /**
@@ -214,6 +219,16 @@ public class Transaction {
    
    public int availableBuffs() {
       return bm.available();
+   }
+   
+   public void registerTempFile(String filename) {
+      tempfiles.add(filename);
+   }
+   
+   private void dropTempFiles() {
+      for (String filename : tempfiles)
+         fm.delete(filename);
+      tempfiles.clear();
    }
    
    private static synchronized int nextTxNumber() {

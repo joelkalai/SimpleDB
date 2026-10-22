@@ -26,6 +26,7 @@ public class TempTable {
    public TempTable(Transaction tx, Schema sch) {
       this.tx = tx;
       tblname = nextTableName();
+      tx.registerTempFile(tblname + ".tbl");
       layout = new Layout(sch);
    }
    

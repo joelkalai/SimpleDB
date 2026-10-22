@@ -33,8 +33,8 @@ public class SortPlan implements Plan {
    
    /**
     * This method is where most of the action is.
-    * Up to 2 sorted temporary tables are created,
-    * and are passed into SortScan for final merging.
+    * The runs are merged until a single sorted temporary
+    * table remains, which is passed into SortScan.
     * @see simpledb.plan.Plan#open()
     */
    public Scan open() {
@@ -43,7 +43,7 @@ public class SortPlan implements Plan {
       src.close();
       if (runs.isEmpty())
          runs.add(new TempTable(tx, sch));
-      while (runs.size() > 2)
+      while (runs.size() > 1)
          runs = doAMergeIteration(runs);
       return new SortScan(runs, comp);
    }

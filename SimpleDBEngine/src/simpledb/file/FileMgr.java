@@ -61,6 +61,17 @@ public class FileMgr {
       return blk;
    }
 
+   public synchronized void delete(String filename) {
+      RandomAccessFile f = openFiles.remove(filename);
+      try {
+         if (f != null)
+            f.close();
+      }
+      catch (IOException e) {
+      }
+      new File(dbDirectory, filename).delete();
+   }
+
    public int length(String filename) {
       try {
          RandomAccessFile f = getFile(filename);
