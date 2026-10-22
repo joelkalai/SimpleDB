@@ -1,6 +1,7 @@
 package simpledb.materialize;
 
 import simpledb.query.*;
+import simpledb.record.Schema;
 
 /**
  * The <i>max</i> aggregation function.
@@ -52,5 +53,9 @@ public class MaxFn implements AggregationFn {
     */
    public Constant value() {
       return val;
+   }
+
+   public void addFieldTo(Schema out, Schema in) {
+      out.addField(fieldName(), in.type(fldname), in.length(fldname));
    }
 }

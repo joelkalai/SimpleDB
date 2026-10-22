@@ -14,6 +14,8 @@ public class GroupByScan implements Scan {
    private List<AggregationFn> aggfns;
    private GroupValue groupval;
    private boolean moregroups;
+   private boolean emptypending;
+   private boolean emptygroup;
    
    /**
     * Create a groupby scan, given a grouped table scan.
@@ -39,6 +41,8 @@ public class GroupByScan implements Scan {
    public void beforeFirst() {
       s.beforeFirst();
       moregroups = s.next();
+      emptygroup = false;
+      emptypending = !moregroups && groupfields.isEmpty() && allDefinedOnEmpty();
    }
    
    /**
@@ -53,8 +57,14 @@ public class GroupByScan implements Scan {
     * @see simpledb.query.Scan#next()
     */
    public boolean next() {
-      if (!moregroups)
-         return false;
+      if (!moregroups) {
+         if (!emptypending)
+            return false;
+         emptypending = false;
+         emptygroup = true;
+         return true;
+      }
+      emptygroup = false;
       for (AggregationFn fn : aggfns)
          fn.processFirst(s);
       groupval = new GroupValue(s, groupfields);
@@ -89,7 +99,7 @@ public class GroupByScan implements Scan {
          return groupval.getVal(fldname);
       for (AggregationFn fn : aggfns)
          if (fn.fieldName().equals(fldname))
-         return fn.value();
+         return emptygroup ? fn.emptyValue() : fn.value();
       throw new RuntimeException("field " + fldname + " not found.");
    }
    
@@ -129,5 +139,11 @@ public class GroupByScan implements Scan {
          return true;
       return false;
    }
-}
 
+   private boolean allDefinedOnEmpty() {
+      for (AggregationFn fn : aggfns)
+         if (!fn.definedOnEmpty())
+            return false;
+      return !aggfns.isEmpty();
+   }
+}

@@ -16,7 +16,7 @@ package simpledb.opt;
  */
 public class JoinStrategy {
    /** The join algorithms a TablePlanner knows how to build. */
-   public enum Algorithm { AUTO, INDEX, MERGE, NESTEDLOOPS, PRODUCT }
+   public enum Algorithm { AUTO, INDEX, MERGE, HASH, NESTEDLOOPS, PRODUCT }
 
    /** The system property consulted for the initial setting. */
    public static final String PROPERTY = "simpledb.join";
@@ -61,6 +61,8 @@ public class JoinStrategy {
          case "auto":                                      return Algorithm.AUTO;
          case "index": case "indexjoin":                    return Algorithm.INDEX;
          case "merge": case "mergejoin": case "sortmerge":  return Algorithm.MERGE;
+         case "hash": case "hashjoin": case "partition":
+         case "partitionjoin": case "gracehash":            return Algorithm.HASH;
          case "nl": case "nested": case "nestedloop":
          case "nestedloops": case "nestedloopsjoin":        return Algorithm.NESTEDLOOPS;
          case "product": case "crossproduct":               return Algorithm.PRODUCT;

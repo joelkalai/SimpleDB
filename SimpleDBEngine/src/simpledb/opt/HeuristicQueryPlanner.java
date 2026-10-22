@@ -47,12 +47,7 @@ public class HeuristicQueryPlanner implements QueryPlanner {
             currentplan = getLowestProductPlan(currentplan);
       }
       
-      // Step 4.  Sort on the order by fields, if the query has an order by clause
-      if (!data.sortFields().isEmpty())
-         currentplan = new SortPlan(tx, currentplan, data.sortFields());
-      
-      // Step 5.  Project on the field names and return
-      return new ProjectPlan(currentplan, data.fields());
+      return ResultPlanner.finish(tx, currentplan, data);
    }
    
    private Plan getLowestSelectPlan() {

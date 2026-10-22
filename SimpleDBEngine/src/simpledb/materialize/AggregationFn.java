@@ -1,6 +1,7 @@
 package simpledb.materialize;
 
 import simpledb.query.*;
+import simpledb.record.Schema;
 
 /**
  * The interface implemented by aggregation functions.
@@ -34,4 +35,16 @@ public interface AggregationFn {
     * @return the computed aggregation value
     */
    Constant value();
+
+   default void addFieldTo(Schema out, Schema in) {
+      out.addIntField(fieldName());
+   }
+
+   default boolean definedOnEmpty() {
+      return false;
+   }
+
+   default Constant emptyValue() {
+      throw new UnsupportedOperationException();
+   }
 }
