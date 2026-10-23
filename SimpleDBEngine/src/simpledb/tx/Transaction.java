@@ -225,6 +225,17 @@ public class Transaction {
       tempfiles.add(filename);
    }
    
+   /**
+    * Delete a temporary file before the transaction ends.
+    * The file stays registered, because flushing one of its
+    * modified buffers later re-creates it, and the commit or
+    * rollback then deletes it again.
+    * @param filename the name of the temporary file
+    */
+   public void deleteTempFile(String filename) {
+      fm.delete(filename);
+   }
+   
    private void dropTempFiles() {
       for (String filename : tempfiles)
          fm.delete(filename);
