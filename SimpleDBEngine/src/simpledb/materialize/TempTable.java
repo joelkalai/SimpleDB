@@ -37,6 +37,14 @@ public class TempTable {
       return new TableScan(tx, tblname, layout);
    }
    
+   /**
+    * Delete the table's file once no scan will read it again,
+    * instead of keeping it open until the transaction ends.
+    */
+   public void delete() {
+      tx.deleteTempFile(tblname + ".tbl");
+   }
+   
    public String tableName() {
       return tblname;
    }

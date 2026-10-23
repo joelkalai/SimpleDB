@@ -7,6 +7,7 @@ package simpledb.query;
  */
 public class ProductScan implements Scan {
    private Scan s1, s2;
+   private boolean lhsHasRecord;
 
    /**
     * Create a product scan having the two underlying scans.
@@ -28,7 +29,7 @@ public class ProductScan implements Scan {
     */
    public void beforeFirst() {
       s1.beforeFirst();
-      s1.next();
+      lhsHasRecord = s1.next();
       s2.beforeFirst();
    }
 
@@ -38,15 +39,18 @@ public class ProductScan implements Scan {
     * Otherwise, it moves to the next LHS record and the
     * first RHS record.
     * If there are no more LHS records, the method returns false.
+    * An empty LHS gives an empty product, so the RHS is not
+    * read at all.
     * @see simpledb.query.Scan#next()
     */
    public boolean next() {
+      if (!lhsHasRecord)
+         return false;
       if (s2.next())
          return true;
-      else {
-         s2.beforeFirst();
-         return s2.next() && s1.next();
-      }
+      s2.beforeFirst();
+      lhsHasRecord = s2.next() && s1.next();
+      return lhsHasRecord;
    }
 
    /** 

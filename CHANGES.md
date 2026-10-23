@@ -71,6 +71,8 @@ Paths are under `SimpleDBEngine/src/simpledb/` unless they start with `SimpleDBC
 ## Lab 7: Integration
 
 - `tx/Transaction.java`, `materialize/TempTable.java`, `file/FileMgr.java` — temporary table files are released when a transaction ends, so sort-heavy queries no longer run out of file handles.
+- `query/ProductScan.java` — an empty left input gives an empty product, so a cross product whose first table selects no rows returns no rows instead of crashing.
+- `materialize/SortPlan.java`, `materialize/TempTable.java`, `tx/Transaction.java` — each pair of sorted runs is deleted as soon as it has been merged, so sorting a large unordered input no longer runs out of file handles.
 - `test/IntegrationTest.java` — runs a mixed query suite under every join algorithm and through the embedded JDBC driver.
 - `SimpleDBClients/src/embedded/PlusDemo.java`, `SimpleDBClients/src/network/PlusDemo.java` — JDBC demos of the new SQL.
 - `test/JoinExperiments.java` — runs the timing experiments for the report.
